@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>수능 본부 업무</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#1d4e89">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="수능 본부">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f1ea; --paper:#fffdf8; --ink:#1f2328; --muted:#6b6f76; --line:#e3ddd0;
+    --accent:#1d4e89; --accent-soft:#e3ecf7; --warn:#b4441c; --ok:#2f7d4f;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:"Noto Sans KR",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:0 16px 80px}
+
+  header{padding:22px 0 14px}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--accent)}
+  h1{font-size:24px;font-weight:900;margin:4px 0 6px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:13px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .dday{background:var(--ink);color:#fff;font-weight:700;border-radius:999px;padding:2px 10px;font-size:12px}
+
+  nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 10px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;border-bottom:1px solid var(--line)}
+  nav.tabs button{font:inherit;font-weight:700;font-size:14px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;padding:10px 4px;cursor:pointer;transition:.15s}
+  nav.tabs button small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
+  nav.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  nav.tabs button[aria-selected="true"] small{color:#cfe0f5}
+
+  .view{display:none;padding-top:16px}
+  .view.on{display:block}
+
+  .day{margin-bottom:26px}
+  .day-head{display:flex;align-items:baseline;gap:10px;margin:0 0 10px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+  .day-head h2{margin:0;font-size:20px;font-weight:900;letter-spacing:-.02em}
+  .day-head .cnt{color:var(--muted);font-size:13px}
+  .day-head .badge{margin-left:auto;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;background:var(--accent-soft);color:var(--accent)}
+  .day-head .badge.today{background:var(--warn);color:#fff}
+  .day-head .badge.past{background:#e7e4dc;color:var(--muted)}
+
+  .slot{margin:12px 0 6px;font-size:13px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:8px}
+  .slot::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .task{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;margin-bottom:7px;display:flex;gap:11px;align-items:flex-start}
+  .task .body{flex:1;min-width:0}
+  .task .title{font-weight:700;font-size:15px}
+  .task .note{color:var(--muted);font-size:13px;margin-top:3px;white-space:pre-line}
+  .task .meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;align-items:center}
+  .when{font-size:12px;font-weight:700;color:var(--ink);background:#efe9dc;border-radius:6px;padding:1px 7px}
+  .chip{font-size:12px;border-radius:999px;padding:1px 9px;font-weight:500;border:1px solid transparent;white-space:nowrap}
+  .task.done{opacity:.5}
+  .task.done .title{text-decoration:line-through}
+  .chk{appearance:none;-webkit-appearance:none;width:22px;height:22px;border:2px solid #b9b2a3;border-radius:7px;margin:1px 0 0;flex:none;cursor:pointer;display:grid;place-content:center;background:#fff}
+  .chk:checked{background:var(--ok);border-color:var(--ok)}
+  .chk:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+
+  .filterbar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .fbtn{font:inherit;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 12px;cursor:pointer;color:var(--ink)}
+  .fbtn .n{color:var(--muted);font-size:11px;margin-left:3px}
+  .fbtn.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .fbtn.on .n{color:#bbb}
+
+  .role-sec{margin-bottom:26px}
+  .role-sec h2{font-size:18px;font-weight:900;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  .role-sec h2 .dot{width:12px;height:12px;border-radius:4px}
+  .role-sec h2 .cnt{font-size:13px;color:var(--muted);font-weight:400}
+
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:16px}
+  .panel label.lbl{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px}
+  select,input[type=search]{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  .person{margin-top:12px;padding:12px;border-radius:10px;background:var(--accent-soft)}
+  .person b{font-size:16px}
+  .person .duty{white-space:pre-line;margin-top:4px;font-size:14px}
+  .person .place{font-size:13px;color:var(--muted);margin-top:2px}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px}
+  .row{display:flex;gap:8px;align-items:center;margin-top:12px;font-size:13px}
+  .row input{width:18px;height:18px}
+  .progress{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:13px;color:var(--muted)}
+  .bar{flex:1;height:8px;background:#e7e2d6;border-radius:99px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+  .empty{text-align:center;color:var(--muted);padding:30px 10px;background:var(--paper);border:1px dashed var(--line);border-radius:var(--r)}
+  .linkbtn{font:inherit;font-size:12px;border:none;background:none;color:var(--accent);text-decoration:underline;cursor:pointer;padding:0}
+
+  .staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+  .staff{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;cursor:pointer;transition:.15s}
+  .staff:hover{border-color:var(--accent)}
+  .staff .top{display:flex;align-items:baseline;gap:6px}
+  .staff .nm{font-weight:900;font-size:16px}
+  .staff .pos{font-size:12px;color:var(--muted)}
+  .staff .grp{margin-left:auto}
+  .staff .duty{font-size:13px;margin-top:5px;white-space:pre-line}
+  .staff .place{font-size:12px;color:var(--muted);margin-top:3px}
+  .staff-group{margin-bottom:18px}
+  .staff-group h3{font-size:14px;margin:0 0 8px;color:var(--muted);font-weight:700}
+
+  body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+  #app{display:none}
+  body.unlocked #app{display:block}
+  body.unlocked #lock{display:none}
+  #lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .lockbox{width:100%;max-width:360px;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:28px 22px;text-align:center}
+  .lockbox .ic{width:64px;height:64px;border-radius:16px;margin:0 auto 12px;display:block}
+  .lockbox h2{margin:0 0 4px;font-size:20px;font-weight:900}
+  .lockbox p{margin:0 0 18px;color:var(--muted);font-size:13px}
+  .lockbox input{font:inherit;width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;font-size:16px;text-align:center}
+  .lockbox button{font:inherit;font-weight:700;width:100%;margin-top:10px;padding:13px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-size:16px;cursor:pointer}
+  .lockbox button:disabled{opacity:.6}
+  .lockbox .err{color:var(--warn);font-size:13px;min-height:20px;margin-top:10px}
+  footer{color:var(--muted);font-size:12px;text-align:center;margin-top:30px}
+  @media (max-width:520px){
+    h1{font-size:21px}
+    nav.tabs button{font-size:13px;padding:9px 2px}
+  }
+</style>
+</head>
+<body>
+<div id="lock"><form class="lockbox" id="lockForm" autocomplete="off">
+  <img class="ic" src="icon-192.png" alt="">
+  <h2>수능 본부 업무</h2>
+  <p>본부요원에게 안내받은 비밀번호를 입력하세요.<br>이 기기에서는 한 번만 입력하면 돼요.</p>
+  <input type="password" id="pw" placeholder="비밀번호" autocomplete="current-password" required>
+  <button id="pwBtn">열기</button>
+  <div class="err" id="pwErr"></div>
+</form></div>
+<div id="app">
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="eyebrow">수능 시험장</div>
+    <h1>본부요원 업무 안내</h1>
+    <div class="sub"><span id="ddayTop" class="dday"></span><span>준비 기간 11.13.(금) ~ 11.18.(수)</span></div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-v="date">날짜별<small>오름차순</small></button>
+    <button role="tab" data-v="role">역할별<small>담당자 기준</small></button>
+    <button role="tab" data-v="mine">내 역할<small>나만 보기</small></button>
+    <button role="tab" data-v="staff">명단<small>본부요원</small></button>
+  </nav>
+
+  <section class="view" id="v-date"></section>
+  <section class="view" id="v-role">
+    <div class="filterbar" id="roleFilter"></div>
+    <div id="roleList"></div>
+  </section>
+  <section class="view" id="v-mine">
+    <div class="panel">
+      <label class="lbl" for="nameSel">① 이름 선택 (본부요원 명단)</label>
+      <select id="nameSel"><option value="">— 이름을 고르면 역할이 자동 선택돼요 —</option></select>
+      <div id="personCard"></div>
+      <label class="lbl" style="margin-top:14px">② 내 역할 (여러 개 선택 가능 · 담임이면 학년도 눌러 주세요)</label>
+      <div class="filterbar" id="mineRoles" style="margin-bottom:0"></div>
+      <label class="row"><input type="checkbox" id="incAll" checked> ‘모든 교사’ 공통 업무 함께 보기</label>
+      <div class="hint">선택한 역할과 완료 체크는 이 기기의 브라우저에만 저장돼요. <button class="linkbtn" id="resetMine">초기화</button></div>
+    </div>
+    <div id="mineList"></div>
+  </section>
+  <section class="view" id="v-staff">
+    <div class="panel" style="padding:10px"><input type="search" id="staffSearch" placeholder="이름·역할·근무지로 찾기"></div>
+    <div id="staffList"></div>
+  </section>
+
+  <footer>이름 카드를 누르면 그 사람의 업무로 이동해요<br><button class="linkbtn" id="lockNow">이 기기에서 잠그기</button></footer>
+</div>
+</div>
+
+<script>
+/* ===================== 데이터 ===================== */
+const D123=["담임(1학년)","담임(2학년)","담임(3학년)"], D12=["담임(1학년)","담임(2학년)"], D3=["담임(3학년)"];
+const DAYS={"11.13":"금","11.16":"월","11.17":"화","11.18":"수"};
+const YEAR=2026;
+const EXAM={m:11,d:19,label:"수능 11.19.(목)"};
+
+// [날짜, 시각 또는 기한(~MM.DD), 업무, 담당 역할[], 비고]
+let RAW=[],STAFF=[];
+// 명단의 '구분' → 업무표의 역할
+const GROUP2ROLE={"순찰요원":["순찰요원"],"복도감독":["복도감독관"],"예비감독관":["예비감독관"],"검수요원":["검수요원"],
+  "보건요원":["보건요원"],"방송요원(정)":["방송요원"],"방송요원(부)":["방송요원"],"부책임자(1)":["교감"],"부책임자(2)":["행정실"],
+  "본부팀장":["교무부장"]};
+const NO_TASK={"책임자":"교장 선생님은 총괄 역할이라 따로 정해진 준비 업무가 없어요.","대기실감독관":"대기실감독관은 따로 정해진 준비 업무가 없어요. 아래 ‘모든 교사’ 공통 업무만 확인해 주세요."};
+
+// 역할 순서와 색
+const ROLES=[
+ ["교감","#1d4e89"],["교무부장","#2563a8"],["교무행정사","#3b7dbf"],["행정실","#5b6b7d"],
+ ["담임(1학년)","#2f7d4f"],["담임(2학년)","#3f9363"],["담임(3학년)","#57a877"],["모든 교사","#7a6a3a"],
+ ["복도감독관","#b4441c"],["예비감독관","#c86a1e"],["검수요원","#a0522d"],["순찰요원","#8a3b6b"],
+ ["방송요원","#6b4fa0"],["보건요원","#c0392b"],["파견관","#444"],
+];
+const COLOR=Object.fromEntries(ROLES);
+
+function boot(){
+/* ===================== 가공 ===================== */
+function timeKey(t){
+  if(t.startsWith("~")){const [m,d]=t.slice(1).split(".").map(Number);return m*100+d;}
+  if(t==="수시") return 99999;
+  const m=t.match(/^(\d+):(\d+)/); return 10000+(+m[1])*60+(+m[2])+(t.includes("~")?0.5:0);
+}
+function slotLabel(t){
+  if(t.startsWith("~")){const md=t.slice(1);return `${md}.(${DAYS[md]||""}) 까지`;}
+  if(t==="수시") return "수시";
+  return t.replace("~"," ~ ");
+}
+const TASKS=RAW.map((r,i)=>({id:"t"+i,date:r[0],t:r[1],title:r[2],roles:r[3],note:r[4],order:i,key:timeKey(r[1])}));
+const dateNum=d=>{const [m,dd]=d.split(".").map(Number);return m*100+dd};
+const sortTasks=a=>a.slice().sort((x,y)=>dateNum(x.date)-dateNum(y.date)||x.key-y.key||x.order-y.order);
+
+const today=new Date(); const t0=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+function dayDiff(md){const [m,d]=md.split(".").map(Number);return Math.round((new Date(YEAR,m-1,d)-t0)/864e5);}
+function ddLabel(n){return n===0?"오늘":n>0?`D-${n}`:"지남";}
+
+/* ===================== 저장 ===================== */
+const store={get(k,f){try{const v=localStorage.getItem("sn27_"+k);return v?JSON.parse(v):f}catch(e){return f}},
+  set(k,v){try{localStorage.setItem("sn27_"+k,JSON.stringify(v))}catch(e){}}};
+let done=store.get("done",{});
+
+/* ===================== 렌더 도우미 ===================== */
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function chip(r){const c=COLOR[r]||"#555";return `<span class="chip" style="background:${c}14;color:${c};border-color:${c}40">${esc(r)}</span>`;}
+function taskCard(t,{showDate=false,showRoles=true,check=false}={}){
+  const isDone=check&&done[t.id];
+  const when=(showDate?`<span class="when">${t.date}.(${DAYS[t.date]})</span>`:"")+
+             (showDate?`<span class="when">${esc(slotLabel(t.t))}</span>`:"");
+  return `<div class="task${isDone?" done":""}">
+    ${check?`<input type="checkbox" class="chk" data-id="${t.id}" ${isDone?"checked":""} aria-label="완료">`:""}
+    <div class="body"><div class="title">${esc(t.title)}</div>
+    ${t.note?`<div class="note">${esc(t.note)}</div>`:""}
+    <div class="meta">${when}${showRoles?t.roles.map(chip).join(""):""}</div></div></div>`;
+}
+function byDate(list,opts={}){
+  const days=[...new Set(sortTasks(list).map(t=>t.date))];
+  return days.map(d=>{
+    const items=sortTasks(list.filter(t=>t.date===d));
+    const n=dayDiff(d);
+    let html="",last=null;
+    for(const t of items){const s=slotLabel(t.t);if(s!==last){html+=`<div class="slot">${esc(s)}</div>`;last=s;}html+=taskCard(t,opts);}
+    return `<div class="day"><div class="day-head"><h2>${d}.(${DAYS[d]})</h2><span class="cnt">${items.length}건</span>
+      <span class="badge ${n===0?"today":n<0?"past":""}">${ddLabel(n)}</span></div>${html}</div>`;
+  }).join("");
+}
+
+/* ===================== 1. 날짜별 ===================== */
+document.getElementById("v-date").innerHTML=byDate(TASKS);
+
+/* ===================== 2. 역할별 ===================== */
+let roleSel=store.get("roleSel","전체");
+function renderRole(){
+  const counts=Object.fromEntries(ROLES.map(([r])=>[r,TASKS.filter(t=>t.roles.includes(r)).length]));
+  document.getElementById("roleFilter").innerHTML=
+    `<button class="fbtn ${roleSel==="전체"?"on":""}" data-r="전체">전체</button>`+
+    ROLES.map(([r])=>`<button class="fbtn ${roleSel===r?"on":""}" data-r="${r}">${r}<span class="n">${counts[r]}</span></button>`).join("");
+  const show=roleSel==="전체"?ROLES.map(x=>x[0]):[roleSel];
+  document.getElementById("roleList").innerHTML=show.map(r=>{
+    const items=sortTasks(TASKS.filter(t=>t.roles.includes(r)));
+    return `<div class="role-sec"><h2><span class="dot" style="background:${COLOR[r]}"></span>${r}<span class="cnt">${items.length}건</span></h2>
+      ${items.map(t=>{const others=t.roles.filter(x=>x!==r);
+        return taskCard({...t,roles:others},{showDate:true});}).join("")}</div>`;
+  }).join("");
+}
+document.getElementById("roleFilter").addEventListener("click",e=>{
+  const b=e.target.closest(".fbtn");if(!b)return;roleSel=b.dataset.r;store.set("roleSel",roleSel);renderRole();
+});
+renderRole();
+
+/* ===================== 3. 내 역할 ===================== */
+let mine=store.get("mine",{name:"",roles:[],incAll:true});
+const nameSel=document.getElementById("nameSel");
+nameSel.innerHTML+=STAFF.slice().sort((a,b)=>a[0].localeCompare(b[0],"ko")).map(s=>`<option value="${s[0]}">${s[0]} · ${s[1]}</option>`).join("");
+function renderMine(){
+  nameSel.value=mine.name||"";
+  document.getElementById("incAll").checked=mine.incAll;
+  const p=STAFF.find(s=>s[0]===mine.name);
+  document.getElementById("personCard").innerHTML=p?`<div class="person"><b>${p[0]}</b> <span style="color:var(--muted);font-size:13px">${p[2]} · ${p[1]}</span>
+     <div class="duty">${esc(p[3])}</div><div class="place">📍 ${esc(p[4])}</div>
+     ${p[1]==="본부팀장"?`<div class="hint">본부팀장 = 교무부장 업무로 연결했어요.</div>`:""}
+     ${NO_TASK[p[1]]?`<div class="hint">${NO_TASK[p[1]]}</div>`:""}</div>`:"";
+  document.getElementById("mineRoles").innerHTML=ROLES.filter(([r])=>r!=="모든 교사").map(([r])=>
+    `<button class="fbtn ${mine.roles.includes(r)?"on":""}" data-r="${r}">${r}</button>`).join("");
+
+  const isTeacher=p&&p[2]==="교사";
+  const roles=new Set(mine.roles); if(mine.incAll&&(roles.size||isTeacher)) roles.add("모든 교사");
+  const list=TASKS.filter(t=>t.roles.some(r=>roles.has(r)));
+  const box=document.getElementById("mineList");
+  if(!mine.roles.length&&!p){box.innerHTML=`<div class="empty">이름이나 역할을 고르면 내 업무만 날짜순으로 보여 드려요.</div>`;return;}
+  if(!list.length){box.innerHTML=`<div class="empty">선택한 역할에 해당하는 준비 업무가 없어요.</div>`;return;}
+  const nDone=list.filter(t=>done[t.id]).length;
+  box.innerHTML=`<div class="progress">완료 ${nDone}/${list.length}<div class="bar"><i style="width:${Math.round(nDone/list.length*100)}%"></i></div></div>`+
+    byDate(list,{check:true});
+}
+nameSel.addEventListener("change",()=>{
+  mine.name=nameSel.value;
+  const p=STAFF.find(s=>s[0]===mine.name);
+  mine.roles=p?(GROUP2ROLE[p[1]]||[]).slice():[];
+  store.set("mine",mine);renderMine();
+});
+document.getElementById("mineRoles").addEventListener("click",e=>{
+  const b=e.target.closest(".fbtn");if(!b)return;const r=b.dataset.r;
+  mine.roles=mine.roles.includes(r)?mine.roles.filter(x=>x!==r):[...mine.roles,r];
+  store.set("mine",mine);renderMine();
+});
+document.getElementById("incAll").addEventListener("change",e=>{mine.incAll=e.target.checked;store.set("mine",mine);renderMine();});
+document.getElementById("mineList").addEventListener("change",e=>{
+  if(!e.target.classList.contains("chk"))return;const id=e.target.dataset.id;
+  if(e.target.checked)done[id]=1;else delete done[id];store.set("done",done);renderMine();
+});
+let resetArm=false;
+document.getElementById("resetMine").addEventListener("click",e=>{
+  if(!resetArm){resetArm=true;e.target.textContent="한 번 더 누르면 초기화";setTimeout(()=>{resetArm=false;e.target.textContent="초기화"},3000);return;}
+  mine={name:"",roles:[],incAll:true};done={};store.set("mine",mine);store.set("done",done);resetArm=false;e.target.textContent="초기화";renderMine();
+});
+renderMine();
+
+/* ===================== 4. 명단 ===================== */
+function renderStaff(q=""){
+  q=q.trim();
+  const groups=[...new Set(STAFF.map(s=>s[1].replace(/\(.*\)/,"")))];
+  const html=groups.map(g=>{
+    const ppl=STAFF.filter(s=>s[1].replace(/\(.*\)/,"")===g&&(!q||s.join(" ").includes(q)));
+    if(!ppl.length)return"";
+    return `<div class="staff-group"><h3>${g} · ${ppl.length}명</h3><div class="staff-grid">${ppl.map(s=>
+      `<div class="staff" data-n="${s[0]}"><div class="top"><span class="nm">${s[0]}</span><span class="pos">${s[2]}</span><span class="grp">${chip(s[1])}</span></div>
+       <div class="duty">${esc(s[3])}</div><div class="place">📍 ${esc(s[4])}</div></div>`).join("")}</div></div>`;
+  }).join("");
+  document.getElementById("staffList").innerHTML=html||`<div class="empty">검색 결과가 없어요.</div>`;
+}
+document.getElementById("staffSearch").addEventListener("input",e=>renderStaff(e.target.value));
+document.getElementById("staffList").addEventListener("click",e=>{
+  const c=e.target.closest(".staff");if(!c)return;
+  nameSel.value=c.dataset.n;nameSel.dispatchEvent(new Event("change"));location.hash="mine";
+});
+renderStaff();
+
+/* ===================== 탭 & 헤더 ===================== */
+const VIEWS=["date","role","mine","staff"];
+function show(){
+  const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"date";
+  document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="v-"+v));
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
+  window.scrollTo(0,0);
+}
+document.querySelector("nav.tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(b){location.hash=b.dataset.v;show();}});
+window.addEventListener("hashchange",show);
+show();
+const ex=Math.round((new Date(YEAR,EXAM.m-1,EXAM.d)-t0)/864e5);
+document.getElementById("ddayTop").textContent=ex>0?`${EXAM.label} · D-${ex}`:ex===0?`${EXAM.label} · D-DAY`:EXAM.label;
+}
+
+
+/* ===================== 잠금 해제 ===================== */
+const ITER=600000, KEYNAME="sn27_key";
+const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+let ENC=null;
+async function loadEnc(){
+  if(ENC) return ENC;
+  const r=await fetch("data.enc.json",{cache:"no-cache"}); ENC=await r.json(); return ENC;
+}
+async function tryKey(key){
+  const e=await loadEnc();
+  const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(e.iv)},key,unb64(e.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function start(data){
+  RAW=data.RAW; STAFF=data.STAFF;
+  document.getElementById("eyebrow").textContent=data.school+" · 수능 시험장";
+  document.body.classList.add("unlocked"); boot();
+}
+async function autoUnlock(){
+  let raw=null; try{raw=localStorage.getItem(KEYNAME)}catch(e){}
+  if(!raw) return;
+  try{const key=await crypto.subtle.importKey("raw",unb64(raw),{name:"AES-GCM"},false,["decrypt"]);start(await tryKey(key));}
+  catch(e){try{localStorage.removeItem(KEYNAME)}catch(_){}}
+}
+document.getElementById("lockForm").addEventListener("submit",async ev=>{
+  ev.preventDefault();
+  const btn=document.getElementById("pwBtn"),err=document.getElementById("pwErr");
+  btn.disabled=true;btn.textContent="여는 중…";err.textContent="";
+  try{
+    const e=await loadEnc();
+    const base=await crypto.subtle.importKey("raw",new TextEncoder().encode(document.getElementById("pw").value),"PBKDF2",false,["deriveKey"]);
+    const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:unb64(e.salt),iterations:e.iter||ITER,hash:"SHA-256"},base,{name:"AES-GCM",length:256},true,["decrypt"]);
+    const data=await tryKey(key);
+    try{localStorage.setItem(KEYNAME,b64(await crypto.subtle.exportKey("raw",key)))}catch(_){}
+    start(data);
+  }catch(x){
+    err.textContent=(x&&x.name==="OperationError")?"비밀번호가 맞지 않아요.":"열 수 없어요. 인터넷 연결을 확인해 주세요.";
+  }finally{btn.disabled=false;btn.textContent="열기";}
+});
+let lockArm=false;
+document.getElementById("lockNow").addEventListener("click",e=>{
+  if(!lockArm){lockArm=true;e.target.textContent="한 번 더 누르면 잠겨요";setTimeout(()=>{lockArm=false;e.target.textContent="이 기기에서 잠그기"},3000);return;}
+  try{localStorage.removeItem(KEYNAME)}catch(_){}
+  location.reload();
+});
+autoUnlock();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
