@@ -480,9 +480,14 @@ function bootExam({store,esc,isExamDay}){
 
   /* ---- 카드 ---- */
   function body(title){
-    const lines=title.split(/\r?\n/);
-    const head=lines[0].trim();
-    const rest=lines.slice(1).map(l=>l.trim()).filter(Boolean);
+    // 시트에서 줄바꿈이 빠져 "…방지• 거동…"처럼 붙은 항목을 줄 단위로 다시 나눔
+    const norm=String(title)
+      .replace(/\r\n?|[\u2028\u2029\u000b\u0085]/g,"\n")
+      .replace(/[ \t\u00a0]*[•●▪◦][ \t\u00a0]*/g,"\n• ");
+    const lines=norm.split("\n").map(l=>l.trim()).filter(Boolean);
+    if(!lines.length) return "";
+    const head=lines[0].replace(/^[-·•]\s*/,"");
+    const rest=lines.slice(1);
     if(!rest.length) return `<div class="title">${esc(head)}</div>`;
     const bul=rest.filter(l=>/^[-·•]/.test(l)).map(l=>l.replace(/^[-·•]\s*/,""));
     const plain=rest.filter(l=>!/^[-·•]/.test(l));
