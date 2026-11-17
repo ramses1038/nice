@@ -33,7 +33,7 @@
   .sub{color:var(--muted);font-size:13px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .dday{background:var(--ink);color:#fff;font-weight:700;border-radius:999px;padding:2px 10px;font-size:12px}
 
-  nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 10px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-bottom:1px solid var(--line)}
+  nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 10px;display:grid;grid-template-columns:repeat(2,1fr);gap:6px;border-bottom:1px solid var(--line)}
   nav.tabs button{font:inherit;font-weight:700;font-size:14px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;padding:10px 4px;cursor:pointer;transition:.15s}
   nav.tabs button small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
   nav.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -114,7 +114,6 @@
   .modebar button.exam.on{background:var(--warn);color:#fff}
   body.exam nav#tabsPrep{display:none}
   body:not(.exam) nav#tabsExam{display:none}
-  nav#tabsExam{grid-template-columns:repeat(3,1fr)}
   body.exam{--accent:#b4441c;--accent-soft:#f7e6dd}
   body.exam nav.tabs button[aria-selected="true"] small{color:#f6d2c2}
   /* 수능일 시간 묶음 */
@@ -170,23 +169,17 @@
 
   <nav class="tabs" id="tabsPrep" role="tablist">
     <button role="tab" data-v="date">날짜별<small>오름차순</small></button>
-    <button role="tab" data-v="role">역할별<small>담당자 기준</small></button>
-    <button role="tab" data-v="mine">내 역할<small>나만 보기</small></button>
+    <button role="tab" data-v="role">역할별<small>체크리스트</small></button>
   </nav>
   <nav class="tabs" id="tabsExam" role="tablist">
     <button role="tab" data-v="sd-time">시간순<small>4:40부터</small></button>
-    <button role="tab" data-v="sd-role">역할별<small>역할 하나씩</small></button>
-    <button role="tab" data-v="sd-mine">내 역할<small>나만 보기</small></button>
+    <button role="tab" data-v="sd-role">역할별<small>체크리스트</small></button>
   </nav>
 
   <section class="view" id="v-date"></section>
   <section class="view" id="v-role">
-    <div class="filterbar" id="roleFilter"></div>
-    <div id="roleList"></div>
-  </section>
-  <section class="view" id="v-mine">
     <div class="panel">
-      <label class="lbl">내 역할 (여러 개 선택 가능 · 담임이면 학년도 눌러 주세요)</label>
+      <label class="lbl">역할 선택 (여러 개 선택 가능 · 담임이면 학년도 눌러 주세요)</label>
       <div class="filterbar" id="mineRoles" style="margin-bottom:0"></div>
       <label class="row"><input type="checkbox" id="incAll" checked> ‘모든 교사’ 공통 업무 함께 보기</label>
       <div class="hint">선택한 역할과 완료 체크는 이 기기의 브라우저에만 저장돼요. <button class="linkbtn" id="resetMine">초기화</button></div>
@@ -196,14 +189,10 @@
 
   <section class="view" id="v-sd-time"></section>
   <section class="view" id="v-sd-role">
-    <div class="filterbar" id="sdRoleFilter"></div>
-    <div id="sdRoleList"></div>
-  </section>
-  <section class="view" id="v-sd-mine">
     <div class="panel">
-      <label class="lbl">내 역할 (여러 개 선택 가능)</label>
+      <label class="lbl">역할 선택 (여러 개 선택 가능)</label>
       <div class="filterbar" id="sdMineRoles" style="margin-bottom:0"></div>
-      <div class="hint">선택한 역할과 완료 체크는 이 기기의 브라우저에만 저장돼요. 준비 업무의 ‘내 역할’과는 따로 저장돼요. <button class="linkbtn" id="sdReset">초기화</button></div>
+      <div class="hint">선택한 역할과 완료 체크는 이 기기의 브라우저에만 저장돼요. 준비 업무 체크와는 따로 저장돼요. <button class="linkbtn" id="sdReset">초기화</button></div>
     </div>
     <div id="sdMineList"></div>
   </section>
@@ -285,37 +274,17 @@ function byDate(list,opts={}){
 /* ===================== 1. 날짜별 ===================== */
 document.getElementById("v-date").innerHTML=byDate(TASKS);
 
-/* ===================== 2. 역할별 ===================== */
-let roleSel=store.get("roleSel","전체");
-function renderRole(){
-  const counts=Object.fromEntries(ROLES.map(([r])=>[r,TASKS.filter(t=>t.roles.includes(r)).length]));
-  document.getElementById("roleFilter").innerHTML=
-    `<button class="fbtn ${roleSel==="전체"?"on":""}" data-r="전체">전체</button>`+
-    ROLES.map(([r])=>`<button class="fbtn ${roleSel===r?"on":""}" data-r="${r}">${r}<span class="n">${counts[r]}</span></button>`).join("");
-  const show=roleSel==="전체"?ROLES.map(x=>x[0]):[roleSel];
-  document.getElementById("roleList").innerHTML=show.map(r=>{
-    const items=sortTasks(TASKS.filter(t=>t.roles.includes(r)));
-    return `<div class="role-sec"><h2><span class="dot" style="background:${COLOR[r]}"></span>${r}<span class="cnt">${items.length}건</span></h2>
-      ${items.map(t=>{const others=t.roles.filter(x=>x!==r);
-        return taskCard({...t,roles:others},{showDate:true});}).join("")}</div>`;
-  }).join("");
-}
-document.getElementById("roleFilter").addEventListener("click",e=>{
-  const b=e.target.closest(".fbtn");if(!b)return;roleSel=b.dataset.r;store.set("roleSel",roleSel);renderRole();
-});
-renderRole();
-
-/* ===================== 3. 내 역할 ===================== */
+/* ===================== 2. 역할별 (체크리스트) ===================== */
 let mine=store.get("mine",{roles:[],incAll:true});
 delete mine.name;
 function renderMine(){
   document.getElementById("incAll").checked=mine.incAll;
   document.getElementById("mineRoles").innerHTML=ROLES.filter(([r])=>r!=="모든 교사").map(([r])=>
-    `<button class="fbtn ${mine.roles.includes(r)?"on":""}" data-r="${r}">${r}</button>`).join("");
+    `<button class="fbtn ${mine.roles.includes(r)?"on":""}" data-r="${r}">${r}<span class="n">${TASKS.filter(t=>t.roles.includes(r)).length}</span></button>`).join("");
   const roles=new Set(mine.roles); if(mine.incAll&&roles.size) roles.add("모든 교사");
   const list=TASKS.filter(t=>t.roles.some(r=>roles.has(r)));
   const box=document.getElementById("mineList");
-  if(!mine.roles.length){box.innerHTML=`<div class="empty">역할을 고르면 내 업무만 날짜순으로 보여 드려요.</div>`;return;}
+  if(!mine.roles.length){box.innerHTML=`<div class="empty">위에서 역할을 고르면 그 역할의 업무를 날짜순 체크리스트로 보여 드려요.</div>`;return;}
   if(!list.length){box.innerHTML=`<div class="empty">선택한 역할에 해당하는 준비 업무가 없어요.</div>`;return;}
   const nDone=list.filter(t=>done[t.id]).length;
   box.innerHTML=`<div class="progress">완료 ${nDone}/${list.length}<div class="bar"><i style="width:${Math.round(nDone/list.length*100)}%"></i></div></div>`+
@@ -339,14 +308,16 @@ document.getElementById("resetMine").addEventListener("click",e=>{
 renderMine();
 
 /* ===================== 탭 & 헤더 ===================== */
-const PREP_V=["date","role","mine"], EXAM_V=["sd-time","sd-role","sd-mine"];
+const PREP_V=["date","role"], EXAM_V=["sd-time","sd-role"];
+const OLD_V={"mine":"role","staff":"role","sd-mine":"sd-role"};
 const todayStr=`${t0.getMonth()+1}.${t0.getDate()}`;
 const isExamDay=(t0.getMonth()+1===EXAM.m&&t0.getDate()===EXAM.d)||SDX.forceNow!=null;
 let mode=store.get("mode","prep");
 if(isExamDay&&store.get("modeDay","")!==todayStr){mode="exam";store.set("modeDay",todayStr);}
 function show(){
-  let v=location.hash.slice(1);
+  let v=location.hash.slice(1); if(OLD_V[v]) v=OLD_V[v];
   if(![...PREP_V,...EXAM_V].includes(v)) v=mode==="exam"?store.get("lastExam","sd-time"):store.get("lastPrep","date");
+  if(OLD_V[v]) v=OLD_V[v];
   mode=EXAM_V.includes(v)?"exam":"prep"; store.set("mode",mode);
   store.set(mode==="exam"?"lastExam":"lastPrep",v);
   document.body.classList.toggle("exam",mode==="exam");
@@ -361,7 +332,8 @@ function show(){
 document.querySelectorAll("nav.tabs").forEach(n=>n.addEventListener("click",e=>{const b=e.target.closest("button");if(b){location.hash=b.dataset.v;}}));
 document.querySelector(".modebar").addEventListener("click",e=>{
   const b=e.target.closest("button");if(!b)return;
-  location.hash=b.dataset.m==="exam"?store.get("lastExam","sd-time"):store.get("lastPrep","date");
+  const t=b.dataset.m==="exam"?store.get("lastExam","sd-time"):store.get("lastPrep","date");
+  location.hash=OLD_V[t]||t;
 });
 window.addEventListener("hashchange",show);
 bootExam({store,esc,isExamDay});
@@ -389,7 +361,7 @@ function bootExam({store,esc,isExamDay}){
   const box=id=>document.getElementById(id);
   if(!SDDATA){
     const msg=`<div class="empty">${esc(SDERR||"수능일 데이터가 없어요.")}</div>`;
-    ["v-sd-time","sdRoleList","sdMineList"].forEach(i=>box(i).innerHTML=msg);
+    ["v-sd-time","sdMineList"].forEach(i=>box(i).innerHTML=msg);
     window.__sdOnShow=()=>window.scrollTo(0,0);
     return;
   }
@@ -402,7 +374,6 @@ function bootExam({store,esc,isExamDay}){
 
   let sdDone=store.get("sd_done",{});
   let sdMine=store.get("sd_mine",[]);
-  let sdRole=store.get("sd_role",roleList[0]);
 
   /* ---- 지금 시각 ---- */
   function nowMin(){
@@ -472,26 +443,13 @@ function bootExam({store,esc,isExamDay}){
   /* ---- 1. 시간순 ---- */
   function renderTime(){ box("v-sd-time").innerHTML=timeline(T); }
 
-  /* ---- 2. 역할별 ---- */
-  function renderRole(){
-    if(!roleList.includes(sdRole)) sdRole=roleList[0];
-    box("sdRoleFilter").innerHTML=roleList.map(r=>{
-      const n=T.filter(t=>t.roles.includes(r)).length;
-      return `<button class="fbtn ${sdRole===r?"on":""}" data-r="${esc(r)}">${esc(r)}<span class="n">${n}</span></button>`;}).join("");
-    const items=T.filter(t=>t.roles.includes(sdRole));
-    box("sdRoleList").innerHTML=`<div class="role-sec"><h2><span class="dot" style="background:${SDC[sdRole]||"#555"}"></span>${esc(sdRole)}<span class="cnt">${items.length}건</span></h2>${timeline(items,{hideRoles:[sdRole]})}</div>`;
-  }
-  box("sdRoleFilter").addEventListener("click",e=>{
-    const b=e.target.closest(".fbtn");if(!b)return;sdRole=b.dataset.r;store.set("sd_role",sdRole);renderRole();scrollToNow(false);
-  });
-
-  /* ---- 3. 내 역할 ---- */
+  /* ---- 2. 역할별 (체크리스트) ---- */
   const mineChoices=roleList.filter(r=>!SD_OUTSIDE.includes(r));
   function renderMine(){
     sdMine=sdMine.filter(r=>mineChoices.includes(r));
-    box("sdMineRoles").innerHTML=mineChoices.map(r=>`<button class="fbtn ${sdMine.includes(r)?"on":""}" data-r="${esc(r)}">${esc(r)}</button>`).join("");
+    box("sdMineRoles").innerHTML=mineChoices.map(r=>`<button class="fbtn ${sdMine.includes(r)?"on":""}" data-r="${esc(r)}">${esc(r)}<span class="n">${T.filter(t=>t.roles.includes(r)).length}</span></button>`).join("");
     const out=box("sdMineList");
-    if(!sdMine.length){out.innerHTML=`<div class="empty">역할을 고르면 수능일 내 일정만 시간순으로 보여 드려요.</div>`;return;}
+    if(!sdMine.length){out.innerHTML=`<div class="empty">위에서 역할을 고르면 그 역할의 수능일 일정을 시간순 체크리스트로 보여 드려요.</div>`;return;}
     const list=T.filter(t=>t.roles.some(r=>sdMine.includes(r)));
     const nDone=list.filter(t=>sdDone[t.id]).length;
     out.innerHTML=`<div class="progress">완료 ${nDone}/${list.length}<div class="bar"><i style="width:${list.length?Math.round(nDone/list.length*100):0}%"></i></div></div>`+
@@ -520,7 +478,7 @@ function bootExam({store,esc,isExamDay}){
     if(el&&nowMin()!=null) el.scrollIntoView({behavior:smooth?"smooth":"auto",block:"start"});
     else window.scrollTo(0,0);
   }
-  function renderAll(){renderTime();renderRole();renderMine();}
+  function renderAll(){renderTime();renderMine();}
   document.body.classList.toggle("showfab",nowMin()!=null);
   box("nowFab").addEventListener("click",()=>scrollToNow(true));
   window.__sdOnShow=()=>setTimeout(()=>scrollToNow(false),30);
