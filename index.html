@@ -33,7 +33,7 @@
   .sub{color:var(--muted);font-size:13px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .dday{background:var(--ink);color:#fff;font-weight:700;border-radius:999px;padding:2px 10px;font-size:12px}
 
-  nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 10px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;border-bottom:1px solid var(--line)}
+  nav.tabs{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 10px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-bottom:1px solid var(--line)}
   nav.tabs button{font:inherit;font-weight:700;font-size:14px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;padding:10px 4px;cursor:pointer;transition:.15s}
   nav.tabs button small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
   nav.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -93,17 +93,6 @@
   .empty{text-align:center;color:var(--muted);padding:30px 10px;background:var(--paper);border:1px dashed var(--line);border-radius:var(--r)}
   .linkbtn{font:inherit;font-size:12px;border:none;background:none;color:var(--accent);text-decoration:underline;cursor:pointer;padding:0}
 
-  .staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
-  .staff{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;cursor:pointer;transition:.15s}
-  .staff:hover{border-color:var(--accent)}
-  .staff .top{display:flex;align-items:baseline;gap:6px}
-  .staff .nm{font-weight:900;font-size:16px}
-  .staff .pos{font-size:12px;color:var(--muted)}
-  .staff .grp{margin-left:auto}
-  .staff .duty{font-size:13px;margin-top:5px;white-space:pre-line}
-  .staff .place{font-size:12px;color:var(--muted);margin-top:3px}
-  .staff-group{margin-bottom:18px}
-  .staff-group h3{font-size:14px;margin:0 0 8px;color:var(--muted);font-weight:700}
 
   body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
   #app{display:none}
@@ -183,7 +172,6 @@
     <button role="tab" data-v="date">날짜별<small>오름차순</small></button>
     <button role="tab" data-v="role">역할별<small>담당자 기준</small></button>
     <button role="tab" data-v="mine">내 역할<small>나만 보기</small></button>
-    <button role="tab" data-v="staff">명단<small>본부요원</small></button>
   </nav>
   <nav class="tabs" id="tabsExam" role="tablist">
     <button role="tab" data-v="sd-time">시간순<small>4:40부터</small></button>
@@ -198,19 +186,12 @@
   </section>
   <section class="view" id="v-mine">
     <div class="panel">
-      <label class="lbl" for="nameSel">① 이름 선택 (본부요원 명단)</label>
-      <select id="nameSel"><option value="">— 이름을 고르면 역할이 자동 선택돼요 —</option></select>
-      <div id="personCard"></div>
-      <label class="lbl" style="margin-top:14px">② 내 역할 (여러 개 선택 가능 · 담임이면 학년도 눌러 주세요)</label>
+      <label class="lbl">내 역할 (여러 개 선택 가능 · 담임이면 학년도 눌러 주세요)</label>
       <div class="filterbar" id="mineRoles" style="margin-bottom:0"></div>
       <label class="row"><input type="checkbox" id="incAll" checked> ‘모든 교사’ 공통 업무 함께 보기</label>
       <div class="hint">선택한 역할과 완료 체크는 이 기기의 브라우저에만 저장돼요. <button class="linkbtn" id="resetMine">초기화</button></div>
     </div>
     <div id="mineList"></div>
-  </section>
-  <section class="view" id="v-staff">
-    <div class="panel" style="padding:10px"><input type="search" id="staffSearch" placeholder="이름·역할·근무지로 찾기"></div>
-    <div id="staffList"></div>
   </section>
 
   <section class="view" id="v-sd-time"></section>
@@ -228,7 +209,7 @@
   </section>
   <button class="nowfab" id="nowFab" type="button">⏱ 지금</button>
 
-  <footer><span id="footTxt">이름 카드를 누르면 그 사람의 업무로 이동해요</span><br><button class="linkbtn" id="lockNow">이 기기에서 잠그기</button></footer>
+  <footer><span id="footTxt">역할을 골라 내 업무만 볼 수 있어요</span><br><button class="linkbtn" id="lockNow">이 기기에서 잠그기</button></footer>
 </div>
 </div>
 
@@ -240,12 +221,7 @@ const YEAR=2026;
 const EXAM={m:11,d:19,label:"수능 11.19.(목)"};
 
 // [날짜, 시각 또는 기한(~MM.DD), 업무, 담당 역할[], 비고]
-let RAW=[],STAFF=[];
-// 명단의 '구분' → 업무표의 역할
-const GROUP2ROLE={"순찰요원":["순찰요원"],"복도감독":["복도감독관"],"예비감독관":["예비감독관"],"검수요원":["검수요원"],
-  "보건요원":["보건요원"],"방송요원(정)":["방송요원"],"방송요원(부)":["방송요원"],"부책임자(1)":["교감"],"부책임자(2)":["행정실"],
-  "본부팀장":["교무부장"]};
-const NO_TASK={"책임자":"교장 선생님은 총괄 역할이라 따로 정해진 준비 업무가 없어요.","대기실감독관":"대기실감독관은 따로 정해진 준비 업무가 없어요. 아래 ‘모든 교사’ 공통 업무만 확인해 주세요.","스마트안경대응":"스마트안경 대응 요원은 따로 정해진 준비 업무가 없어요. 아래 ‘모든 교사’ 공통 업무만 확인해 주세요."};
+let RAW=[];
 
 // 역할 순서와 색
 const ROLES=[
@@ -330,36 +306,21 @@ document.getElementById("roleFilter").addEventListener("click",e=>{
 renderRole();
 
 /* ===================== 3. 내 역할 ===================== */
-let mine=store.get("mine",{name:"",roles:[],incAll:true});
-const nameSel=document.getElementById("nameSel");
-nameSel.innerHTML+=STAFF.slice().sort((a,b)=>a[0].localeCompare(b[0],"ko")).map(s=>`<option value="${s[0]}">${s[0]} · ${s[1]}</option>`).join("");
+let mine=store.get("mine",{roles:[],incAll:true});
+delete mine.name;
 function renderMine(){
-  nameSel.value=mine.name||"";
   document.getElementById("incAll").checked=mine.incAll;
-  const p=STAFF.find(s=>s[0]===mine.name);
-  document.getElementById("personCard").innerHTML=p?`<div class="person"><b>${p[0]}</b> <span style="color:var(--muted);font-size:13px">${p[2]} · ${p[1]}</span>
-     <div class="duty">${esc(p[3])}</div><div class="place">📍 ${esc(p[4])}</div>
-     ${p[1]==="본부팀장"?`<div class="hint">본부팀장 = 교무부장 업무로 연결했어요.</div>`:""}
-     ${NO_TASK[p[1]]?`<div class="hint">${NO_TASK[p[1]]}</div>`:""}</div>`:"";
   document.getElementById("mineRoles").innerHTML=ROLES.filter(([r])=>r!=="모든 교사").map(([r])=>
     `<button class="fbtn ${mine.roles.includes(r)?"on":""}" data-r="${r}">${r}</button>`).join("");
-
-  const isTeacher=p&&p[2]==="교사";
-  const roles=new Set(mine.roles); if(mine.incAll&&(roles.size||isTeacher)) roles.add("모든 교사");
+  const roles=new Set(mine.roles); if(mine.incAll&&roles.size) roles.add("모든 교사");
   const list=TASKS.filter(t=>t.roles.some(r=>roles.has(r)));
   const box=document.getElementById("mineList");
-  if(!mine.roles.length&&!p){box.innerHTML=`<div class="empty">이름이나 역할을 고르면 내 업무만 날짜순으로 보여 드려요.</div>`;return;}
+  if(!mine.roles.length){box.innerHTML=`<div class="empty">역할을 고르면 내 업무만 날짜순으로 보여 드려요.</div>`;return;}
   if(!list.length){box.innerHTML=`<div class="empty">선택한 역할에 해당하는 준비 업무가 없어요.</div>`;return;}
   const nDone=list.filter(t=>done[t.id]).length;
   box.innerHTML=`<div class="progress">완료 ${nDone}/${list.length}<div class="bar"><i style="width:${Math.round(nDone/list.length*100)}%"></i></div></div>`+
     byDate(list,{check:true});
 }
-nameSel.addEventListener("change",()=>{
-  mine.name=nameSel.value;
-  const p=STAFF.find(s=>s[0]===mine.name);
-  mine.roles=p?(GROUP2ROLE[p[1]]||[]).slice():[];
-  store.set("mine",mine);renderMine();
-});
 document.getElementById("mineRoles").addEventListener("click",e=>{
   const b=e.target.closest(".fbtn");if(!b)return;const r=b.dataset.r;
   mine.roles=mine.roles.includes(r)?mine.roles.filter(x=>x!==r):[...mine.roles,r];
@@ -373,32 +334,12 @@ document.getElementById("mineList").addEventListener("change",e=>{
 let resetArm=false;
 document.getElementById("resetMine").addEventListener("click",e=>{
   if(!resetArm){resetArm=true;e.target.textContent="한 번 더 누르면 초기화";setTimeout(()=>{resetArm=false;e.target.textContent="초기화"},3000);return;}
-  mine={name:"",roles:[],incAll:true};done={};store.set("mine",mine);store.set("done",done);resetArm=false;e.target.textContent="초기화";renderMine();
+  mine={roles:[],incAll:true};done={};store.set("mine",mine);store.set("done",done);resetArm=false;e.target.textContent="초기화";renderMine();
 });
 renderMine();
 
-/* ===================== 4. 명단 ===================== */
-function renderStaff(q=""){
-  q=q.trim();
-  const groups=[...new Set(STAFF.map(s=>s[1].replace(/\(.*\)/,"")))];
-  const html=groups.map(g=>{
-    const ppl=STAFF.filter(s=>s[1].replace(/\(.*\)/,"")===g&&(!q||s.join(" ").includes(q)));
-    if(!ppl.length)return"";
-    return `<div class="staff-group"><h3>${g} · ${ppl.length}명</h3><div class="staff-grid">${ppl.map(s=>
-      `<div class="staff" data-n="${s[0]}"><div class="top"><span class="nm">${s[0]}</span><span class="pos">${s[2]}</span><span class="grp">${chip(s[1])}</span></div>
-       <div class="duty">${esc(s[3])}</div><div class="place">📍 ${esc(s[4])}</div></div>`).join("")}</div></div>`;
-  }).join("");
-  document.getElementById("staffList").innerHTML=html||`<div class="empty">검색 결과가 없어요.</div>`;
-}
-document.getElementById("staffSearch").addEventListener("input",e=>renderStaff(e.target.value));
-document.getElementById("staffList").addEventListener("click",e=>{
-  const c=e.target.closest(".staff");if(!c)return;
-  nameSel.value=c.dataset.n;nameSel.dispatchEvent(new Event("change"));location.hash="mine";
-});
-renderStaff();
-
 /* ===================== 탭 & 헤더 ===================== */
-const PREP_V=["date","role","mine","staff"], EXAM_V=["sd-time","sd-role","sd-mine"];
+const PREP_V=["date","role","mine"], EXAM_V=["sd-time","sd-role","sd-mine"];
 const todayStr=`${t0.getMonth()+1}.${t0.getDate()}`;
 const isExamDay=(t0.getMonth()+1===EXAM.m&&t0.getDate()===EXAM.d)||SDX.forceNow!=null;
 let mode=store.get("mode","prep");
@@ -414,7 +355,7 @@ function show(){
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
   document.getElementById("hTitle").textContent=mode==="exam"?"수능일 업무 안내":"본부요원 업무 안내";
   document.getElementById("subTxt").textContent=mode==="exam"?"11.19.(목) 시간 순서 · 역할별 정리":"준비 기간 11.13.(금) ~ 11.18.(수)";
-  document.getElementById("footTxt").textContent=mode==="exam"?"수능일 화면은 역할로만 골라 봐요":"이름 카드를 누르면 그 사람의 업무로 이동해요";
+  document.getElementById("footTxt").textContent=mode==="exam"?"수능일 화면은 역할로만 골라 봐요":"역할을 골라 내 업무만 볼 수 있어요";
   if(mode==="exam"&&window.__sdOnShow) window.__sdOnShow(v); else window.scrollTo(0,0);
 }
 document.querySelectorAll("nav.tabs").forEach(n=>n.addEventListener("click",e=>{const b=e.target.closest("button");if(b){location.hash=b.dataset.v;}}));
@@ -618,7 +559,7 @@ async function loadSD(){
   catch(x){SDDATA=null;SDERR=(x&&x.name==="OperationError")?"수능일 데이터를 열 수 없어요(비밀번호가 다름).":"수능일 데이터를 불러오지 못했어요. 인터넷 연결 후 한 번 열어 주세요.";}
 }
 async function start(data){
-  RAW=data.RAW; STAFF=data.STAFF;
+  RAW=data.RAW;
   await loadSD();
   document.getElementById("eyebrow").textContent=data.school+" · 수능 시험장";
   document.body.classList.add("unlocked"); boot();
